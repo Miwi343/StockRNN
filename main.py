@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib as plt
+import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_datareader as web
 import datetime as dt
@@ -13,7 +14,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, LSTM
 
 # Load Data
-company = 'FB'
+company = 'LMT'
 
 start = dt.datetime(2012,1,1)   #specify start and end of data reading
 end = dt.datetime(2020,1,1)
@@ -45,7 +46,7 @@ model.add(LSTM(units=50, return_sequences=True))
 model.add(Dropout(0.2))
 model.add(LSTM(units=50))
 model.add(Dropout(0.2))
-model.add(LSTM(units=1))    #Prediction of next closing value
+model.add(Dense(units=1))    #Prediction of next closing value
 
 model.compile(optimizer='adam', loss='mean_squared_error')  #optimizer and loss
 model.fit(x_train, y_train, epochs=25, batch_size=32)
@@ -76,7 +77,7 @@ x_test = np.array(x_test)
 x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
 
 predicted_prices = model.predict(x_test)
-predicted_prices = scaler.inverse_transform()
+predicted_prices = scaler.inverse_transform(predicted_prices)
 
 #Plot the Test Predictions
 plt.plot(actual_prices, color="black", label=f"Actual {company} Price")
@@ -86,3 +87,15 @@ plt.xlabel('Time')
 plt.ylabel(f"{company} Share Price")
 plt.legend()
 plt.show()
+
+# Predict Next Day
+
+real_data = [model_inputs[len(model_inputs) + 1 - prediction_days:len(model_inputs+1), 0]]
+real_data = np.array(real_data)
+read_data = np.reshape(real_data, (real_data.shape[0], real_data.shape[1], 1))
+
+print( scaler.inverse_transform(real_data))
+
+prediction = model.predict(real_data)
+prediction = scaler.inverse_transform(prediction)
+print(f"Prediction: {prediction}")
