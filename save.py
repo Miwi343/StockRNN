@@ -14,7 +14,7 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, Dropout, LSTM
 
 # Load Data
-company = 'LMT'
+company = 'AAPL'
 
 start = dt.datetime(2012,1,1)   #specify start and end of data reading
 end = dt.datetime(2020,1,1)
@@ -38,25 +38,25 @@ x_train, y_train = np.array(x_train), np.array(y_train)
 x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))  #reshaping trains
 
 # Build the Model
-model = Sequential()    #Recurrent Neural Network (sequential)
+# model = Sequential()    #Recurrent Neural Network (sequential)
 
-model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1],1))) #1)number of layers - experimental, 2)feeds information back layers, not just forward
-model.add(Dropout(0.2))
-model.add(LSTM(units=50, return_sequences=True))
-model.add(Dropout(0.2))
-model.add(LSTM(units=50))
-model.add(Dropout(0.2))
-model.add(Dense(units=1))    #Prediction of next closing value
+# model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1],1))) #1)number of layers - experimental, 2)feeds information back layers, not just forward
+# model.add(Dropout(0.2))
+# model.add(LSTM(units=50, return_sequences=True))
+# model.add(Dropout(0.2))
+# model.add(LSTM(units=50))
+# model.add(Dropout(0.2))
+# model.add(Dense(units=1))    #Prediction of next closing value
 
-model.compile(optimizer='adam', loss='mean_squared_error')  #optimizer and loss
-model.fit(x_train, y_train, epochs=25, batch_size=32)
+# model.compile(optimizer='adam', loss='mean_squared_error')  #optimizer and loss
+# model.fit(x_train, y_train, epochs=25, batch_size=32)
 
-model.save(company+'_lstm_model.h5')
+# model.save('lstm_model.h5')
 #Test the Model Accuracy on Existing Data
 
 #Load Test Data
 
-#model = load_model('lstm_model.h5')
+model = load_model('lstm_model.h5')
 test_start = dt.datetime(2021,1,1)
 test_end = dt.datetime.now()
 
@@ -89,27 +89,16 @@ plt.title(f"{company} Share Price over Time")
 plt.xlabel('Time')
 plt.ylabel(f"{company} Share Price")
 plt.legend()
-#plt.show()
+plt.show()
 
 # Predict Next Day
-future_prices = []
 
-for futureI in range(1, 40):
-    real_data = [model_inputs[len(model_inputs) + 1 - prediction_days:len(model_inputs+1), 0]]
-    real_data = np.array(real_data)
-    real_data = np.reshape(real_data, (real_data.shape[0], real_data.shape[1], 1))
 
-    prediction = model.predict(real_data)
+real_data = [model_inputs[len(model_inputs) + 1 - prediction_days:len(model_inputs+1), 0]]
+real_data = np.array(real_data)
+real_data = np.reshape(real_data, (real_data.shape[0], real_data.shape[1], 1))
 
-    for x in range(len(model_inputs)-1):
-        model_inputs[x] = model_inputs[x+1]
 
-    model_inputs[len(model_inputs)-1] = prediction
-
-    prediction = scaler.inverse_transform(prediction)
-    future_prices.append(prediction)
-
-    print(f"Prediction {futureI} days in the future: {prediction}")
-
-# plt.plot(future_prices, color="red", label = f"Future predictions {company}")
-
+prediction = model.predict(real_data)
+prediction = scaler.inverse_transform(prediction)
+print(f"Prediction: {prediction}")
